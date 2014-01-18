@@ -5,7 +5,7 @@ import irc.strings
 
 import log
 import commands
-
+import urlparser
 
 class LulzBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
@@ -13,54 +13,45 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         self.channel = '#lulztest'
         commands.bot = self
 
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def on_nicknameinuse(c, e):
+    def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
 
-    # noinspection PyUnusedLocal
     def on_welcome(self, c, e):
         c.join(self.channel)
 
-    # noinspection PyUnusedLocal
     def on_privmsg(self, c, e):
         self.do_command(e)
 
-    # noinspection PyUnusedLocal
     def on_pubmsg(self, c, e):
         log.log(e)
-        if e.arguments[0][0] == '!':
+        message = e.arguments[0]
+        if message[0] == '!':
             self.do_command(e)
+        # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
+        for url in message.split():
+            title = urlparser.get_title(url)
+            if title:
+                self.say_public(title)
 
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def on_join(c, e):
+
+    def on_join(self, c, e):
         log.log(e)
 
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def on_quit(c, e):
+    def on_quit(self, c, e):
         log.log(e)
 
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def on_part(c, e):
+    def on_part(self, c, e):
         log.log(e)
 
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def on_nick(c, e):
+    def on_nick(self, c, e):
         log.log(e)
 
-    # noinspection PyUnusedLocal
     def on_kick(self, c, e):
         log.log(e)
         if e.arguments[0] == c.get_nickname():
             self.connection.join(self.channel)
 
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def on_mode(c, e):
+    def on_mode(self, c, e):
         log.log(e)
 
     def say(self, target, message):
@@ -86,7 +77,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         except AttributeError:
             pass
         else:
-            self.reply(e, cmd_handler(e.arguments[0].split()[1:]))
+            self.reply(e, cmd_handler(arguments))
 
 
 def main():
