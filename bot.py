@@ -7,6 +7,7 @@ import log
 import commands
 import urlparser
 
+
 class LulzBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
         irc.bot.SingleServerIRCBot.__init__(self, [("irc.freenode.net", 6667)], "LulzBot", "LulzBot")
@@ -32,7 +33,6 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             title = urlparser.get_title(url)
             if title:
                 self.say_public(title)
-
 
     def on_join(self, c, e):
         log.log(e)
