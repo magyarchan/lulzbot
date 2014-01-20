@@ -2,22 +2,22 @@ import inspect
 import sys
 
 
-def help(args):
-    help.help = 'Te mit?'
+def cmd_help(args):
+    """Te mit?"""
     if len(args) == 0:
-        return 'Parancsok: ' + ', '.join([x[0] for x in inspect.getmembers(sys.modules[__name__], inspect.isfunction)])
+        return 'Parancsok: ' + ', '.join([x[0][4:] for x in inspect.getmembers(sys.modules[__name__], inspect.isfunction) if x[0][:4] == 'cmd_'])
     else:
         try:
-            cmd_handler = getattr(sys.modules[__name__], args[0])
+            cmd_handler = getattr(sys.modules[__name__], 'cmd_' + args[0])
         except AttributeError:
             return 'Nincs ilyen parancs :C'
         else:
-            if hasattr(cmd_handler, 'help'):
-                return cmd_handler.help
+            if cmd_handler.__doc__:
+                return cmd_handler.__doc__
             else:
                 return 'Nincs segítség :C'
 
 
-def ping(args):
-    ping.help = 'Pong!!!'
+def cmd_ping(args):
+    """Pong!!!"""
     return 'Pong!'
