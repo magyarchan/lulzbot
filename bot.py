@@ -73,7 +73,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         if command[0] == '!':
             command = command[1:]
         try:
-            cmd_handler = getattr(commands, command)
+            cmd_handler = getattr(commands, 'cmd_' + command)
         except AttributeError:
             pass
         else:
