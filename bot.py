@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import re
+import time
 import irc.bot
 import irc.strings
 
@@ -92,7 +93,15 @@ class LulzBot(irc.bot.SingleServerIRCBot):
 
 def main():
     bot = LulzBot()
-    bot.start()
+    bot.connection.set_keepalive(300)
+    connected = False
+    while not connected:
+        try:
+            bot.start()
+        except irc.client.ServerConnectionError:
+            time.sleep(60)
+        else:
+            connected = True
 
 
 if __name__ == "__main__":
