@@ -2,12 +2,16 @@
 
 import re
 import time
+import random
+
+import irc.client
 import irc.bot
 import irc.strings
 
 import log
 import commands
 import urlparser
+import database
 
 
 class LulzBot(irc.bot.SingleServerIRCBot):
@@ -38,9 +42,21 @@ class LulzBot(irc.bot.SingleServerIRCBot):
 
     def on_join(self, c, e):
         log.log(e)
+        if e.source.nick != c.get_nickname():
+            welcomes = []
+            for user in database.session.query(database.User):
+                if any(re.search(pattern.pattern, e.source.nick) for pattern in user.patterns):
+                    welcomes += [welcome.welcome for welcome in user.welcomes]
+            if welcomes:
+                self.say_public(random.choice(welcomes))
+            else:
+                self.say_public('Hát te meg ki a here vagy? :/')
 
     def on_quit(self, c, e):
         log.log(e)
+        if len(e.source.nick) < len(c.get_nickname()) and re.search(r'^' + c.get_nickname().rstrip('_') + r'_*$',
+                                                                    e.source.nick):
+            c.nick(e.source.nick)
 
     def on_part(self, c, e):
         log.log(e)
@@ -81,10 +97,12 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             arguments = re.sub(r'!\(([^\s\)]*) ?', '\'+commands.cmd_\\1(\'', arguments)
             while re.search(r'[^\\]\)', arguments):
                 arguments = re.sub(r'([^\\])\)', '\\1\'' + chr(0xE000) + '+\'', arguments)
-            arguments = arguments.replace(chr(0xE000), ')')
+            arguments = arguments.replace(chr(0xE000), ',' +
+                                                       str(self.channels[self.channel].is_oper(e.source.nick)) + ')')
             # noinspection PyBroadException
             try:
-                response = eval('commands.cmd_' + command + '(\'' + arguments + '\')')
+                response = eval('commands.cmd_' + command + '(\'' + arguments + '\',' +
+                                str(self.channels[self.channel].is_oper(e.source.nick)) + ')')
             except:
                 self.reply(e, 'There is no problem sir.')
             else:
@@ -92,6 +110,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
 
 
 def main():
+    database.initialize()
     bot = LulzBot()
     bot.connection.set_keepalive(300)
     connected = False
