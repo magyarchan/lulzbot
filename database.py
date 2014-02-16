@@ -35,6 +35,15 @@ class Welcome(Base):
     __table_args__ = (sqlalchemy.schema.UniqueConstraint('user_id', 'welcome'),)
 
 
+class Seen(Base):
+    __tablename__ = 'seen'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    time = sqlalchemy.Column(sqlalchemy.DateTime)
+    nick = sqlalchemy.Column(sqlalchemy.String(32), unique=True)
+    reason = sqlalchemy.Column(sqlalchemy.Enum('quit', 'part', 'kick', 'nick'), name='seen_reasons')
+    args = sqlalchemy.Column(sqlalchemy.String(64))
+
+
 def initialize():
     global session
     engine = sqlalchemy.create_engine(database_config.connection_string)
