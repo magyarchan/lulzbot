@@ -3,6 +3,7 @@
 import re
 import time
 import random
+import datetime
 
 import irc.client
 import irc.bot
@@ -54,18 +55,56 @@ class LulzBot(irc.bot.SingleServerIRCBot):
 
     def on_quit(self, c, e):
         log.log(e)
+        seen = database.session.query(database.Seen).filter_by(nick=e.source.nick).all()
+        if seen:
+            seen[0].time = datetime.datetime.now()
+            seen[0].reason = 'quit'
+            seen[0].args = e.arguments[0]
+        else:
+            database.session.add(
+                database.Seen(time=datetime.datetime.now(), nick=e.source.nick, reason='quit', args=e.arguments[0]))
+        database.session.commit()
         if len(e.source.nick) < len(c.get_nickname()) and re.search(r'^' + c.get_nickname().rstrip('_') + r'_*$',
                                                                     e.source.nick):
             c.nick(e.source.nick)
 
     def on_part(self, c, e):
         log.log(e)
+        seen = database.session.query(database.Seen).filter_by(nick=e.source.nick).all()
+        if seen:
+            seen[0].time = datetime.datetime.now()
+            seen[0].reason = 'part'
+            seen[0].args = e.arguments[0] if e.arguments else ''
+        else:
+            database.session.add(
+                database.Seen(time=datetime.datetime.now(), nick=e.source.nick, reason='part',
+                              args=e.arguments[0] if e.arguments else ''))
+        database.session.commit()
 
     def on_nick(self, c, e):
         log.log(e)
+        seen = database.session.query(database.Seen).filter_by(nick=e.source.nick).all()
+        if seen:
+            seen[0].time = datetime.datetime.now()
+            seen[0].reason = 'nick'
+            seen[0].args = e.target
+        else:
+            database.session.add(
+                database.Seen(time=datetime.datetime.now(), nick=e.source.nick, reason='nick', args=e.target))
+        database.session.commit()
 
     def on_kick(self, c, e):
         log.log(e)
+        seen = database.session.query(database.Seen).filter_by(nick=e.arguments[0]).all()
+        if seen:
+            seen[0].time = datetime.datetime.now()
+            seen[0].reason = 'kick'
+            seen[0].args = e.source.nick + ' ' + e.arguments[1]
+        else:
+            database.session.add(
+                database.Seen(time=datetime.datetime.now(), nick=e.arguments[0], reason='kick',
+                              args=e.source.nick + ' ' + e.arguments[1]))
+        database.session.commit()
         if e.arguments[0] == c.get_nickname():
             self.connection.join(self.channel)
 
@@ -73,8 +112,9 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         log.log(e)
 
     def say(self, target, message):
-        for i in range(0, len(message), 350):
-            self.connection.privmsg(target, '\x0305' + message[i:i + 350].replace('\r', '').replace('\n', ' '))
+        if message:
+            for i in range(0, len(message), 350):
+                self.connection.privmsg(target, '\x0305' + message[i:i + 350].replace('\r', '').replace('\n', ' '))
 
     def say_public(self, message):
         self.say(self.channel, message)
@@ -94,14 +134,14 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             self.reply(e, 'There is no problem sir.')
         else:
             arguments = re.sub(r'\\(.)', '\\1', arguments).replace('\\', '\\\\').replace('\'', '\\\'')
-            arguments = re.sub(r'!\(([^\s\)]*) ?', '\'+commands.cmd_\\1(\'', arguments)
+            arguments = re.sub(r'!\(([^\s\)]*) ?', '\'+commands.cmd_\\1(\'' + e.source.nick + '\',\'', arguments)
             while re.search(r'[^\\]\)', arguments):
                 arguments = re.sub(r'([^\\])\)', '\\1\'' + chr(0xE000) + '+\'', arguments)
             arguments = arguments.replace(chr(0xE000), ',' +
                                                        str(self.channels[self.channel].is_oper(e.source.nick)) + ')')
             # noinspection PyBroadException
             try:
-                response = eval('commands.cmd_' + command + '(\'' + arguments + '\',' +
+                response = eval('commands.cmd_' + command + '(\'' + e.source.nick + '\',\'' + arguments + '\',' +
                                 str(self.channels[self.channel].is_oper(e.source.nick)) + ')')
             except:
                 self.reply(e, 'There is no problem sir.')
