@@ -21,7 +21,7 @@ def cmd_kocka(nick, args, admin):
     """Dob egy n oldalú kockával. Használat: !kocka n"""
     try:
         if int(args) == 2:
-            return 'Loli' if random.random > 0.5 else 'Feri'
+            return 'Loli' if random.random() > 0.5 else 'Feri'
         else:
             return str(random.randint(1, int(args)))
     except ValueError:
