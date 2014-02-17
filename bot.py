@@ -18,7 +18,7 @@ import database
 class LulzBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
         irc.bot.SingleServerIRCBot.__init__(self, [("adams.freenode.net", 6667)], "LulzBot", "LulzBot")
-        self.channel = '#lulztest'
+        self.channel = '#magyarchan'
         commands.bot = self
 
     def on_nicknameinuse(self, c, e):
@@ -46,7 +46,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         if e.source.nick != c.get_nickname():
             welcomes = []
             for user in database.session.query(database.User):
-                if any(re.search(pattern.pattern, e.source.nick) for pattern in user.patterns):
+                if any(re.search(pattern.pattern, e.source.nick, flags=re.IGNORECASE) for pattern in user.patterns):
                     welcomes += [welcome.welcome for welcome in user.welcomes]
             if welcomes:
                 self.say_public(random.choice(welcomes))
