@@ -15,6 +15,7 @@ class User(Base):
     __tablename__ = 'users'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.String(32), unique=True)
+    is_admin = sqlalchemy.Column(sqlalchemy.Integer)
 
 
 class Pattern(Base):

@@ -8,6 +8,6 @@ def get_title(url):
         page = urllib.request.urlopen(url)
         bs = bs4.BeautifulSoup(page)
         if bs.title:
-            return bs.title.string
-    except (urllib.error.URLError, ValueError):
+            return bs.title.string.strip()
+    except:
         pass

@@ -17,7 +17,7 @@ import database
 
 class LulzBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
-        irc.bot.SingleServerIRCBot.__init__(self, [("adams.freenode.net", 6667)], "LulzBot", "LulzBot")
+        irc.bot.SingleServerIRCBot.__init__(self, [("irc.freenode.net", 6667)], "MalenkijroBot", "kekbot")
         self.channel = '#magyarchan'
         commands.bot = self
 
@@ -51,7 +51,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             if welcomes:
                 self.say_public(random.choice(welcomes))
             else:
-                self.say_public('Hát te meg ki a here vagy? :/')
+                self.say_public('Szervusz ismeretlen! :/')
 
     def on_quit(self, c, e):
         log.log(e)
@@ -138,16 +138,23 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             while re.search(r'[^\\]\)', arguments):
                 arguments = re.sub(r'([^\\])\)', '\\1\'' + chr(0xE000) + '+\'', arguments)
             arguments = arguments.replace(chr(0xE000), ',' +
-                                                       str(self.channels[self.channel].is_oper(e.source.nick)) + ')')
+                                                       self.isOperator(e.source.nick) + ')')
             # noinspection PyBroadException
             try:
                 response = eval('commands.cmd_' + command + '(\'' + e.source.nick + '\',\'' + arguments + '\',' +
-                                str(self.channels[self.channel].is_oper(e.source.nick)) + ')')
+                                self.isOperator(e.source.nick) + ')')
             except:
                 self.reply(e, 'There is no problem sir.')
             else:
                 self.reply(e, response)
 
+    def isOperator(self, nick):
+        chanop = self.channels[self.channel].is_oper(nick)
+        dbop = False
+        for user in database.session.query(database.User):
+            if any(re.search(pattern.pattern, nick, flags=re.IGNORECASE) for pattern in user.patterns):
+                dbop = bool(user.is_admin)
+        return str(chanop or dbop)
 
 def main():
     database.initialize()
