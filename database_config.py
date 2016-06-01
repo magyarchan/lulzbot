@@ -1,1 +1,1 @@
-connection_string = ''
+connection_string = 'sqlite:///database.sqlite'

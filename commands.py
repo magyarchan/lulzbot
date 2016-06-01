@@ -8,6 +8,10 @@ import sqlalchemy.exc
 import database
 import duckduckgo
 
+errmsg = 'Kit mit hogy?'
+autherror = 'Nem-nem.'
+argerror = 'Nem-nem.'
+
 
 def cmd_ddg(nick, args, admin):
     """Használat: !ddg query"""
@@ -20,6 +24,8 @@ def cmd_ddg(nick, args, admin):
 def cmd_kocka(nick, args, admin):
     """Dob egy n oldalú kockával. Használat: !kocka n"""
     try:
+        if len(args) > 10:
+            return argerror
         if int(args) == 2:
             return 'Loli' if random.random() > 0.5 else 'Feri'
         else:
@@ -64,7 +70,7 @@ def cmd_adduser(nick, args, admin):
         else:
             return cmd_help(nick, 'adduser', admin)
     else:
-        return 'Nem-nem.'
+        return autherror
 
 
 def cmd_addpattern(nick, args, admin):
@@ -73,7 +79,10 @@ def cmd_addpattern(nick, args, admin):
         if len(args.split()) >= 2:
             user = database.session.query(database.User).filter_by(name=args.split()[0]).all()
             if len(user):
-                user[0].patterns.append(database.Pattern(pattern=' '.join(args.split()[1:])))
+                try:
+                    user[0].patterns.append(database.Pattern(pattern=' '.join(args.split()[1:])))
+                except:
+                    traceback.print_exc()
                 try:
                     database.session.commit()
                 except sqlalchemy.exc.IntegrityError:
@@ -85,7 +94,7 @@ def cmd_addpattern(nick, args, admin):
         else:
             return cmd_help(nick, 'addpattern', admin)
     else:
-        return 'Nem-nem.'
+        return autherror
 
 
 def cmd_addwelcome(nick, args, admin):
@@ -106,7 +115,9 @@ def cmd_addwelcome(nick, args, admin):
         else:
             return cmd_help(nick, 'addwelcome', admin)
     else:
-        return 'Nem-nem.'
+        return autherror
+
+
 
 
 def cmd_rmuser(nick, args, admin):
@@ -123,7 +134,7 @@ def cmd_rmuser(nick, args, admin):
         else:
             return cmd_help(nick, 'rmuser', admin)
     else:
-        return 'Nem-nem.'
+        return autherror
 
 
 def cmd_rmpattern(nick, args, admin):
@@ -142,7 +153,7 @@ def cmd_rmpattern(nick, args, admin):
         else:
             return cmd_help(nick, 'rmpattern', admin)
     else:
-        return 'Nem-nem.'
+        return autherror
 
 
 def cmd_rmwelcome(nick, args, admin):
@@ -161,7 +172,7 @@ def cmd_rmwelcome(nick, args, admin):
         else:
             return cmd_help(nick, 'rmwelcome', admin)
     else:
-        return 'Nem-nem.'
+        return autherror
 
 
 def cmd_admin(nick, args, admin):
@@ -189,14 +200,14 @@ def cmd_seen(nick, args, admin):
 
 def cmd_beer(nick, args, admin):
     if not args:
-        return 'Kit mit hogy?'
+        return errmsg
     else:
         return args + ': ' + nick + ' meghívott egy sörre!'
 
 
 def cmd_random(nick, args, admin):
     if not args:
-        return 'Kit mit hogy?'
+        return errmsg
     else:
         part1 = [u'kurvára', u'alattomos módon', u'rejtélyesen', u'mocskosul', u'önzetlenül', u'udvariasan',
                  u'humánusan', u'sunyin', u'álnokmód', u'galád módon', u'álszentül', u'titokzatosan',
@@ -214,49 +225,56 @@ def cmd_random(nick, args, admin):
 
 def cmd_brohoof(nick, args, admin):
     if not args:
-        return 'Kit mit hogy?'
+        return errmsg
     else:
         return args + ' /)(\\ ' + nick
 
 
 def cmd_bulimeghivas(nick, args, admin):
     if not args:
-        return 'Kit mit hogy?'
+        return errmsg
     else:
         return args + ': ' + nick + ' meghívott a következő bulijába!'
 
 
 def cmd_fuck(nick, args, admin):
     if not args:
-        return 'Kit mit hogy?'
+        return errmsg
     else:
         return args + ': ' + nick + ' kegyelmet nem ismerve, ordasmód megkúrt!'
 
 
 def cmd_hug(nick, args, admin):
     if not args:
-        return 'Kit mit hogy?'
+        return errmsg
     else:
         return args + ': ' + nick + ' megölelt!'
 
 
 def cmd_lick(nick, args, admin):
     if not args:
-        return 'Kit mit hogy?'
+        return errmsg
     else:
         return args + ': ' + nick + ' alattomos módon pofánnyalt!'
 
 
 def cmd_pacsi(nick, args, admin):
     if not args:
-        return 'Kit mit hogy?'
+        return errmsg
     else:
         return args + ' o/\\o ' + nick
+
+def cmd_heil(nick, args, admin):
+#    if not args:
+#        return errmsg
+#    else:
+    return 'Erőt egészséget kíván nemzetünk legnagyobb formátumú államférfijának, országunk bölcs miniszterelnökének, Vitéz Al- és Felcsúti Orbán Viktornak alázatos szolgája, ' + nick + '! Heil Viktor!'
+
 
 
 def cmd_tea(nick, args, admin):
     if not args:
-        return 'Kit mit hogy?'
+        return errmsg
     else:
         return args + ': ' + nick + ' kiöntötte a lelkét a /t/eádba.'
 
@@ -264,7 +282,7 @@ def cmd_tea(nick, args, admin):
 def cmd_summon(nick, args, admin):
     """Megidézheted akár azt is aki online."""
     if not args:
-        return 'Kit mit hogy?'
+        return errmsg
     else:
         if random.random() > 0.5:
             return args + ' hamarosan feltűnik!'
