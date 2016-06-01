@@ -1,6 +1,6 @@
 import time
 
-directory = './'
+directory = './log/'
 
 filename = time.strftime("%Y-%m-%d_%H")
 file = open(directory + filename + '.txt', mode='a', encoding='utf-8')
