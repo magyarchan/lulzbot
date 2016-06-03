@@ -2,3 +2,4 @@ database.sqlite
 log/
 __pycache__/
 .idea/
+development.conf

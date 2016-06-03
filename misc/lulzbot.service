@@ -1,0 +1,16 @@
+[Unit]
+Description=Lulzbot
+After=network.target
+
+[Service]
+Type=simple
+User=aldum
+Group=users
+WorkingDirectory=/home/aldum/lulzbot/
+PIDFile=/var/run/lulzbot.pid
+ExecStart=/home/aldum/.virtualenvs/lulzbot/bin/python /home/aldum/lulzbot/bot.py production.conf
+#Restart=always
+
+[Install]
+WantedBy=multi-user.target
+

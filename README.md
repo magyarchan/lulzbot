@@ -6,5 +6,5 @@ köszönet érte jaksinak aki a régi bot roncsaiból megalkotta
 
 Python3
 
-	pip install irc bs4 sqlalchemy
+	pip install irc bs4 sqlalchemy pyhocon
 

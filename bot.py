@@ -1,6 +1,7 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
 import re
+import sys
 import time
 import random
 import datetime
@@ -13,12 +14,21 @@ import log
 import commands
 import urlparser
 import database
+from config import Config
 
 
 class LulzBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
-        irc.bot.SingleServerIRCBot.__init__(self, [("irc.freenode.net", 6667)], "MalenkijroBot", "kekbot")
-        self.channel = '#magyarchan'
+        configFile = "development.conf"
+        if(len(sys.argv) > 1):
+            configFile = sys.argv[1]
+        self.config = Config(configFile)
+        server = self.config.getString('irc.server')
+        port = self.config.getInt('irc.port')
+        name = self.config.getString('irc.name')
+        channel = self.config.getString('irc.channel')
+        irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], name, name)
+        self.channel = channel
         commands.bot = self
 
     def on_nicknameinuse(self, c, e):
