@@ -47,9 +47,11 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             self.do_command(e)
         # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
         for url in message.split():
-            title = urlparser.get_title(url)
-            if title:
-                self.say_public(title)
+            if 'http://' in url:
+                print('trying to parse: ' + url)
+                title = urlparser.get_title(url)
+                if title:
+                    self.say_public(title)
 
     def on_join(self, c, e):
         log.log(e)
