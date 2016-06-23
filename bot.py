@@ -47,7 +47,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             self.do_command(e)
         # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
         for url in message.split():
-            if 'http://' in url:
+            if ('http://' in url or 'https://' in url):
                 print('trying to parse: ' + url)
                 title = urlparser.get_title(url)
                 if title:
