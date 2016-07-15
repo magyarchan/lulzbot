@@ -13,3 +13,6 @@ class Config:
     def getInt(self, key):
         return self.conf.get_int(key)
 
+    def getBoolean(self, key):
+        return self.conf.get_bool(key)
+

@@ -41,7 +41,8 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         self.do_command(e)
 
     def on_pubmsg(self, c, e):
-        log.log(e)
+        if self.config.getBoolean('irc.logging'):
+            log.log(e)
         message = e.arguments[0]
         if message[0] == '!':
             self.do_command(e)
@@ -54,7 +55,8 @@ class LulzBot(irc.bot.SingleServerIRCBot):
                     self.say_public(title)
 
     def on_join(self, c, e):
-        log.log(e)
+        if self.config.getBoolean('irc.logging'):
+            log.log(e)
         if e.source.nick != c.get_nickname():
             welcomes = []
             for user in database.session.query(database.User):
