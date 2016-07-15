@@ -97,6 +97,18 @@ def cmd_addpattern(nick, args, admin):
         return autherror
 
 
+def cmd_patterns(nick, args, admin):
+    """Felhasználóhoz tartozó patternek listázása. E.g.: !patterns user"""
+    if admin:
+        patterns = []
+        for user in database.session.query(database.User):
+            if any(re.search(pattern.pattern, e.source.nick, flags=re.IGNORECASE) for pattern in user.patterns):
+                patterns = user.patterns
+                print(patterns)
+    else:
+        return autherror
+
+
 def cmd_addwelcome(nick, args, admin):
     """Hozzáad egy köszöntő üzenetet a megadott felhasználóhoz. Használat: !addwelcome user welcome"""
     if admin:
