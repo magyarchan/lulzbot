@@ -10,4 +10,5 @@ def get_title(url):
         if bs.title:
             return bs.title.string.strip()
     except:
+        print('bazdmeg')
         pass

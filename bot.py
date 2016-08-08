@@ -40,7 +40,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
     def on_privmsg(self, c, e):
         self.do_command(e)
 
-    def on_pubmsg(self, c, e):
+    def on_pubmsg(self, c, e):        
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         message = e.arguments[0]
@@ -68,7 +68,8 @@ class LulzBot(irc.bot.SingleServerIRCBot):
                 self.say_public('Szervusz ismeretlen! :/')
 
     def on_quit(self, c, e):
-        log.log(e)
+        if self.config.getBoolean('irc.logging'):
+            log.log(e)
         seen = database.session.query(database.Seen).filter_by(nick=e.source.nick).all()
         if seen:
             seen[0].time = datetime.datetime.now()
@@ -83,7 +84,8 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             c.nick(e.source.nick)
 
     def on_part(self, c, e):
-        log.log(e)
+        if self.config.getBoolean('irc.logging'):
+            log.log(e)
         seen = database.session.query(database.Seen).filter_by(nick=e.source.nick).all()
         if seen:
             seen[0].time = datetime.datetime.now()
@@ -96,7 +98,8 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         database.session.commit()
 
     def on_nick(self, c, e):
-        log.log(e)
+        if self.config.getBoolean('irc.logging'):
+            log.log(e)
         seen = database.session.query(database.Seen).filter_by(nick=e.source.nick).all()
         if seen:
             seen[0].time = datetime.datetime.now()
@@ -108,7 +111,8 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         database.session.commit()
 
     def on_kick(self, c, e):
-        log.log(e)
+        if self.config.getBoolean('irc.logging'):
+            log.log(e)
         seen = database.session.query(database.Seen).filter_by(nick=e.arguments[0]).all()
         if seen:
             seen[0].time = datetime.datetime.now()
@@ -123,7 +127,8 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             self.connection.join(self.channel)
 
     def on_mode(self, c, e):
-        log.log(e)
+        if self.config.getBoolean('irc.logging'):
+            log.log(e)
 
     def say(self, target, message):
         if message:
