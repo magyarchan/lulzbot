@@ -44,11 +44,13 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         message = e.arguments[0]
-        if message[0] == '!':
+        if message[0] in ['!', '?']:
             self.do_command(e)
         # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
         for url in message.split():
             if ('http://' in url or 'https://' in url):
+                if('imgur' in url):
+                    url = re.sub(r'.gifv?', '', url)
                 print('trying to parse: ' + url)
                 title = urlparser.get_title(url)
                 if title:
@@ -146,13 +148,18 @@ class LulzBot(irc.bot.SingleServerIRCBot):
 
     def do_command(self, e):
         command = e.arguments[0].split()[0].lower()
-        if len(command) < 2:
-            return
+#        if len(command) < 2:
+#            return
         arguments = ' '.join(e.arguments[0].split()[1:])
+        if command[0] == '?':
+            arguments = command[1:] + ' ' + arguments
+            command = "ddg" 
+        print(command)
+        print(arguments)
         if command[0] == '!':
             command = command[1:]
-        if '(' in command:
-            self.reply(e, 'There is no problem sir.')
+        #if '(' in command:
+        #    self.reply(e, 'There is no problem sir.')
         else:
             arguments = re.sub(r'\\(.)', '\\1', arguments).replace('\\', '\\\\').replace('\'', '\\\'')
             arguments = re.sub(r'!\(([^\s\)]*) ?', '\'+commands.cmd_\\1(\'' + e.source.nick + '\',\'', arguments)
