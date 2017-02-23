@@ -10,7 +10,7 @@ import duckduckgo
 
 errmsg = 'Kit mit hogy?'
 autherror = 'Nem-nem.'
-argerror = 'Nem-nem.'
+argerror = '???'
 
 
 def cmd_ddg(nick, args, admin):
@@ -301,6 +301,9 @@ def cmd_summon(nick, args, admin):
         else:
             return args + ' megidézése kudarcba fulladt.'
 
+def cmd_vaccpaor(nick, args, admin):
+    """angol -> magyar fordítás. Használat: !vaccpaor [kifejezés]"""
+    return 'throw new NotImplementedException'
 
 def cmd_garoi(nick, args, admin):
     rules = [
