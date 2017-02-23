@@ -44,7 +44,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         message = e.arguments[0]
-        if message[0] in ['!', '?'] and len(message) > 1:
+        if message[0] in ['!', '?'] and len(message) > 1 and len(''.join(set(message))) > 1:
             self.do_command(e)
         # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
         for url in message.split():
@@ -67,7 +67,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             if welcomes:
                 self.say_public(random.choice(welcomes))
             else:
-                self.say_public('Szervusz ismeretlen! :/')
+                self.say_public('Újbuzik nem tudnak háromerő :/')
 
     def on_quit(self, c, e):
         if self.config.getBoolean('irc.logging'):
