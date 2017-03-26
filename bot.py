@@ -154,8 +154,6 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             command = "ddg" 
         if command[0] == '!':
             command = command[1:]
-        print(command)
-        print(arguments)
         if '(' in command:
             self.reply(e, 'There is no problem sir.')
         else:
