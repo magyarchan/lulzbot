@@ -295,6 +295,8 @@ def cmd_summon(nick, args, admin):
     """Megidézheted akár azt is aki online."""
     if not args:
         return errmsg
+    elif args in ['ercsi', 'erendis', 'Erendis']:
+        return 'Nem.'
     else:
         if random.random() > 0.5:
             return args + ' hamarosan feltűnik!'
