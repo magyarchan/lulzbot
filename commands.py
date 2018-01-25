@@ -15,6 +15,8 @@ argerror = '???'
 
 def cmd_ddg(nick, args, admin):
     """Használat: !ddg query"""
+    if nick.lower() == "vapid":
+        return "nope"
     if not args:
         return cmd_help(nick, 'ddg', admin)
     else:
