@@ -20,6 +20,12 @@ def cmd_ddg(nick, args, admin):
     else:
         return duckduckgo.search(args)
 
+def cmd_choice(nick, args, admin):
+    """Véletlenszerűen választ a felsorolt lehetőségek közül. Használat: !choice lehetőség1, lehetőség2, .."""
+    if not args:
+        return cmd_help(nick, 'choice', admin)
+    else:
+        return random.choice(args.split(",")).strip()
 
 def cmd_kocka(nick, args, admin):
     """Dob egy n oldalú kockával. Használat: !kocka n"""
