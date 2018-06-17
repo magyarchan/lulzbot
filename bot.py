@@ -4,6 +4,7 @@ import re
 import sys
 import time
 import random
+import inspect
 import datetime
 
 import irc.client
@@ -16,6 +17,10 @@ import urlparser
 import database
 from config import Config
 
+
+def is_command_allowed(cmd):
+    return cmd in [x[0][4:] for x in inspect.getmembers(sys.modules["commands"],
+        inspect.isfunction) if x[0][:4] == 'cmd_']
 
 class LulzBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
@@ -154,7 +159,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             command = "ddg" 
         if command[0] == '!':
             command = command[1:]
-        if '(' in command:
+        if '(' in command or not is_command_allowed(command):
             self.reply(e, 'There is no problem sir.')
         else:
             arguments = re.sub(r'\\(.)', '\\1', arguments).replace('\\', '\\\\').replace('\'', '\\\'')
