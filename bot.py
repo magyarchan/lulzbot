@@ -40,7 +40,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
     def on_privmsg(self, c, e):
         self.do_command(e)
 
-    def on_pubmsg(self, c, e):        
+    def on_pubmsg(self, c, e):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         message = e.arguments[0]
