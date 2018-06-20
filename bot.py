@@ -12,15 +12,29 @@ import irc.bot
 import irc.strings
 
 import log
+import sed
 import commands
 import urlparser
 import database
 from config import Config
 
 
-def is_command_allowed(cmd):
-    return cmd in [x[0][4:] for x in inspect.getmembers(sys.modules["commands"],
-        inspect.isfunction) if x[0][:4] == 'cmd_']
+# strip !, preprocess special commands
+def prepare_command(command, args, full_msg):
+    if command[0] == '?':
+        args = command[1:] + ' ' + args
+        command = "ddg"
+    elif command[0] == '!':
+        command = command[1:]
+    elif command.startswith("s/"):
+        args = full_msg
+        command = "sed"
+    return command, args
+
+
+def is_command(message):
+    return message.startswith("?") or message.startswith("!") or message.startswith("s/")
+
 
 class LulzBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
@@ -35,6 +49,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], name, name)
         self.channel = channel
         commands.bot = self
+        self.sed_history = sed.SedHistory()
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -49,7 +64,8 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         message = e.arguments[0]
-        if message[0] in ['!', '?'] and len(message) > 1 and len(''.join(set(message))) > 1:
+        self.sed_history.update(e.source.nick, message)
+        if is_command(message) and len(message) > 1 and len(''.join(set(message))) > 1:
             self.do_command(e)
         # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
         for url in message.split():
@@ -153,31 +169,17 @@ class LulzBot(irc.bot.SingleServerIRCBot):
 
     def do_command(self, e):
         command = e.arguments[0].split()[0].lower()
-        arguments = ' '.join(e.arguments[0].split()[1:])
-        if command[0] == '?':
-            arguments = command[1:] + ' ' + arguments
-            command = "ddg" 
-        if command[0] == '!':
-            command = command[1:]
-        if '(' in command or not is_command_allowed(command):
+        args = ' '.join(e.arguments[0].split()[1:])
+        command, args = prepare_command(command, args, e.arguments[0])
+        # noinspection PyBroadException
+        try:
+            handler = getattr(sys.modules["commands"], "cmd_" + command)
+            response = handler(self, e.source.nick, args, self.is_operator(e.source.nick))
+            self.reply(e, response)
+        except:
             self.reply(e, 'There is no problem sir.')
-        else:
-            arguments = re.sub(r'\\(.)', '\\1', arguments).replace('\\', '\\\\').replace('\'', '\\\'')
-            arguments = re.sub(r'!\(([^\s\)]*) ?', '\'+commands.cmd_\\1(\'' + e.source.nick + '\',\'', arguments)
-            while re.search(r'[^\\]\)', arguments):
-                arguments = re.sub(r'([^\\])\)', '\\1\'' + chr(0xE000) + '+\'', arguments)
-            arguments = arguments.replace(chr(0xE000), ',' +
-                                                       self.isOperator(e.source.nick) + ')')
-            # noinspection PyBroadException
-            try:
-                response = eval('commands.cmd_' + command + '(\'' + e.source.nick + '\',\'' + arguments + '\',' +
-                                self.isOperator(e.source.nick) + ')')
-            except:
-                self.reply(e, 'There is no problem sir.')
-            else:
-                self.reply(e, response)
 
-    def isOperator(self, nick):
+    def is_operator(self, nick):
         chanop = self.channels[self.channel].is_oper(nick)
         dbop = False
         for user in database.session.query(database.User):
