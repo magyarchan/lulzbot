@@ -15,6 +15,7 @@ import log
 import commands
 import urlparser
 import database
+import sedhistory
 from config import Config
 
 
@@ -49,7 +50,9 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         message = e.arguments[0]
-        if message[0] in ['!', '?'] and len(message) > 1 and len(''.join(set(message))) > 1:
+        nick = e.source.split("!")[0]
+        sedhistory.update(nick, message)
+        if (message[0] in ['!', '?'] or message.startswith('s/')) and len(message) > 1 and len(''.join(set(message))) > 1:
             self.do_command(e)
         # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
         for url in message.split():
@@ -157,6 +160,9 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         if command[0] == '?':
             arguments = command[1:] + ' ' + arguments
             command = "ddg" 
+        elif command.startswith('s/'):
+            arguments = command
+            command = "sed"
         if command[0] == '!':
             command = command[1:]
         if '(' in command or not is_command_allowed(command):
