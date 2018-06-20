@@ -42,6 +42,44 @@ def cmd_kocka(self, nick, args, admin):
         return 'Te mit tesa?'
 
 
+def sed_common(self, nick, args, get_hist, get_help, format_msg):
+    args = args.split(' ')
+    hist_idx = 0
+    if len(args) > 1 and args[0].startswith('-') and len(args[0]) > 1:
+        hist_idx = args[0]
+        hist_idx = abs(int(hist_idx))
+        hist_idx -= 1
+        hist_idx = 0 if hist_idx < 0 else hist_idx
+        args = args[1:]
+    sed = ' '.join(args) # az 's/pat/repl/' resz
+    if not sed.startswith('s'):
+        return get_help()
+    try:
+        hist = get_hist(hist_idx)
+    except ValueError:
+        return "Nem."
+    split_ch = sed[1]
+    tmp = sed.split(split_ch)
+    pattern, repl = tmp[1], tmp[2] # skip az 's't
+    return format_msg(nick, pattern, repl, hist)
+
+
+def cmd_sed(self, nick, args, admin):
+    """sed. Használat: !sed (-idx) s/regex/repl/"""
+    return sed_common(self, nick, args,
+        lambda idx: self.sed_history.get_personal(nick, idx),
+        lambda: cmd_help(nick, 'sed', admin),
+        lambda nick, pattern, repl, hist: '%s erre gondolt: %s' % (nick, re.sub(pattern, repl, hist)))
+
+
+def cmd_gsed(self, nick, args, admin):
+    """Global sed. Használat: !sed (-idx) s/regex/repl/"""
+    return sed_common(self, nick, args,
+        lambda idx: self.sed_history.get_global(idx),
+        lambda: cmd_help(nick, 'gsed', admin),
+        lambda nick, pattern, repl, hist: '%s szerint %s erre gondolt: %s' % (nick, hist[0], re.sub(pattern, repl, hist[1])))
+
+
 def cmd_help(self, nick, args, admin):
     """Te mit?"""
     if not args:

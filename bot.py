@@ -12,6 +12,7 @@ import irc.bot
 import irc.strings
 
 import log
+import sed
 import commands
 import urlparser
 import database
@@ -25,11 +26,14 @@ def prepare_command(command, args):
         command = "ddg"
     elif command[0] == '!':
         command = command[1:]
+    elif command.startswith("s/"):
+        args = command
+        command = "sed"
     return command, args
 
 
 def is_command(message):
-    return message.startswith("?") or message.startswith("!")
+    return message.startswith("?") or message.startswith("!") or message.startswith("s/")
 
 
 class LulzBot(irc.bot.SingleServerIRCBot):
@@ -45,6 +49,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], name, name)
         self.channel = channel
         commands.bot = self
+        self.sed_history = sed.SedHistory()
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -59,6 +64,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         message = e.arguments[0]
+        self.sed_history.update(e.source.nick, message)
         if is_command(message) and len(message) > 1 and len(''.join(set(message))) > 1:
             self.do_command(e)
         # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
