@@ -13,7 +13,7 @@ autherror = 'Nem-nem.'
 argerror = '???'
 
 
-def cmd_ddg(nick, args, admin):
+def nyomorult_ddg(self, nick, args, admin):
     """Használat: !ddg query"""
     if not args:
         return cmd_help(nick, 'ddg', admin)
@@ -21,7 +21,7 @@ def cmd_ddg(nick, args, admin):
         return duckduckgo.search(args)
 
 
-def cmd_choice(nick, args, admin):
+def nyomorult_choice(self, nick, args, admin):
     """Véletlenszerűen választ a felsorolt lehetőségek közül. Használat: !choice lehetőség1, lehetőség2, .."""
     if not args:
         return cmd_help(nick, 'choice', admin)
@@ -29,7 +29,7 @@ def cmd_choice(nick, args, admin):
         return random.choice(args.split(",")).strip()
 
 
-def cmd_kocka(nick, args, admin):
+def nyomorult_kocka(self, nick, args, admin):
     """Dob egy n oldalú kockával. Használat: !kocka n"""
     try:
         if len(args) > 10:
@@ -42,29 +42,67 @@ def cmd_kocka(nick, args, admin):
         return 'Te mit tesa?'
 
 
-def cmd_help(nick, args, admin):
+def sed_common(self, nick, args, get_hist, get_help, format_msg):
+    args = args.split(' ')
+    hist_idx = 0
+    if len(args) > 1 and args[0].startswith('-') and len(args[0]) > 1:
+        hist_idx = args[0]
+        hist_idx = abs(int(hist_idx))
+        hist_idx -= 1
+        hist_idx = 0 if hist_idx < 0 else hist_idx
+        args = args[1:]
+    sed = ' '.join(args) # az 's/pat/repl/' resz
+    if not sed.startswith('s'):
+        return get_help()
+    try:
+        hist = get_hist(hist_idx)
+    except ValueError:
+        return "Nem."
+    split_ch = sed[1]
+    tmp = sed.split(split_ch)
+    pattern, repl = tmp[1], tmp[2] # skip az 's't
+    return format_msg(nick, pattern, repl, hist)
+
+
+def cmd_sed(self, nick, args, admin):
+    """sed. Használat: !sed (-idx) s/regex/repl/"""
+    return sed_common(self, nick, args,
+        lambda idx: self.sed_history.get_personal(nick, idx),
+        lambda: cmd_help(nick, 'sed', admin),
+        lambda nick, pattern, repl, hist: '%s erre gondolt: %s' % (nick, re.sub(pattern, repl, hist)))
+
+
+def cmd_gsed(self, nick, args, admin):
+    """Global sed. Használat: !sed (-idx) s/regex/repl/"""
+    return sed_common(self, nick, args,
+        lambda idx: self.sed_history.get_global(idx),
+        lambda: cmd_help(nick, 'gsed', admin),
+        lambda nick, pattern, repl, hist: '%s szerint %s erre gondolt: %s' % (nick, hist[0], re.sub(pattern, repl, hist[1])))
+
+
+def cmd_help(self, nick, args, admin):
     """Te mit?"""
     if not args:
         return 'Parancsok: ' + ', '.join(
-            [x[0][4:] for x in inspect.getmembers(sys.modules[__name__], inspect.isfunction) if x[0][:4] == 'cmd_'])
+            [x[0][4:] for x in inspect.getmembers(sys.modules[__name__], inspect.isfunction) if x[0][:4] == 'nyomorult_'])
     else:
         try:
-            cmd_handler = getattr(sys.modules[__name__], 'cmd_' + args)
+            nyomorult_handler = getattr(sys.modules[__name__], 'nyomorult_' + args)
         except AttributeError:
             return 'Nincs ilyen parancs :C'
         else:
-            if cmd_handler.__doc__:
-                return cmd_handler.__doc__
+            if nyomorult_handler.__doc__:
+                return nyomorult_handler.__doc__
             else:
                 return 'Nincs segítség :C'
 
 
-def cmd_ping(nick, args, admin):
+def nyomorult_ping(self, nick, args, admin):
     """Pong!!!"""
     return 'Pong!'
 
 
-def cmd_adduser(nick, args, admin):
+def nyomorult_adduser(self, nick, args, admin):
     """Felhasználó hozzáadása. Használat: !adduser user"""
     if admin:
         if args:
@@ -81,7 +119,7 @@ def cmd_adduser(nick, args, admin):
         return autherror
 
 
-def cmd_addpattern(nick, args, admin):
+def nyomorult_addpattern(self, nick, args, admin):
     """Hozzáad egy regex pattern-t a megadott felhasználóhoz. Használat: !addpattern user pattern"""
     if admin:
         if len(args.split()) >= 2:
@@ -105,7 +143,7 @@ def cmd_addpattern(nick, args, admin):
         return autherror
 
 
-def cmd_patterns(nick, args, admin):
+def nyomorult_patterns(self, nick, args, admin):
     """Felhasználóhoz tartozó patternek listázása. E.g.: !patterns user"""
     if admin:
         patterns = []
@@ -117,7 +155,7 @@ def cmd_patterns(nick, args, admin):
         return autherror
 
 
-def cmd_addwelcome(nick, args, admin):
+def nyomorult_addwelcome(self, nick, args, admin):
     """Hozzáad egy köszöntő üzenetet a megadott felhasználóhoz. Használat: !addwelcome user welcome"""
     if admin:
         if len(args.split()) >= 2:
@@ -140,7 +178,7 @@ def cmd_addwelcome(nick, args, admin):
 
 
 
-def cmd_rmuser(nick, args, admin):
+def nyomorult_rmuser(self, nick, args, admin):
     """Felhasználó törlése. Használat: !rmuser user"""
     if admin:
         if args:
@@ -157,7 +195,7 @@ def cmd_rmuser(nick, args, admin):
         return autherror
 
 
-def cmd_rmpattern(nick, args, admin):
+def nyomorult_rmpattern(self, nick, args, admin):
     """Pattern törlése. Használat: !rmpattern user pattern"""
     if admin:
         if args:
@@ -176,7 +214,7 @@ def cmd_rmpattern(nick, args, admin):
         return autherror
 
 
-def cmd_rmwelcome(nick, args, admin):
+def nyomorult_rmwelcome(self, nick, args, admin):
     """Üdvözlet törlése. Használat: !rmwelcome user pattern"""
     if admin:
         if args:
@@ -195,12 +233,12 @@ def cmd_rmwelcome(nick, args, admin):
         return autherror
 
 
-def cmd_admin(nick, args, admin):
+def nyomorult_admin(self, nick, args, admin):
     """Megállapítja az erőszintedet. Használat: !admin"""
     return 'Yes yes!' if admin else 'Nope :C'
 
 
-def cmd_seen(nick, args, admin):
+def nyomorult_seen(self, nick, args, admin):
     """Használat: !seen nick"""
     seen = list(filter(lambda x: re.search(args, x.nick), database.session.query(database.Seen).all()))
     if seen:
@@ -218,14 +256,14 @@ def cmd_seen(nick, args, admin):
                 0] + ' kirúgta: ' + ' '.join(seen[0].args.split()[1:]) + ')'
 
 
-def cmd_beer(nick, args, admin):
+def nyomorult_beer(self, nick, args, admin):
     if not args:
         return errmsg
     else:
         return args + ': ' + nick + ' meghívott egy sörre!'
 
 
-def cmd_random(nick, args, admin):
+def nyomorult_random(self, nick, args, admin):
     if not args:
         return errmsg
     else:
@@ -243,48 +281,48 @@ def cmd_random(nick, args, admin):
             part3) + '!'
 
 
-def cmd_brohoof(nick, args, admin):
+def nyomorult_brohoof(self, nick, args, admin):
     if not args:
         return errmsg
     else:
         return args + ' /)(\\ ' + nick
 
 
-def cmd_bulimeghivas(nick, args, admin):
+def nyomorult_bulimeghivas(self, nick, args, admin):
     if not args:
         return errmsg
     else:
         return args + ': ' + nick + ' meghívott a következő bulijába!'
 
 
-def cmd_fuck(nick, args, admin):
+def nyomorult_fuck(self, nick, args, admin):
     if not args:
         return errmsg
     else:
         return args + ': ' + nick + ' kegyelmet nem ismerve, ordasmód megkúrt!'
 
 
-def cmd_hug(nick, args, admin):
+def nyomorult_hug(self, nick, args, admin):
     if not args:
         return errmsg
     else:
         return args + ': ' + nick + ' megölelt!'
 
 
-def cmd_lick(nick, args, admin):
+def nyomorult_lick(self, nick, args, admin):
     if not args:
         return errmsg
     else:
         return args + ': ' + nick + ' alattomos módon pofánnyalt!'
 
 
-def cmd_pacsi(nick, args, admin):
+def nyomorult_pacsi(self, nick, args, admin):
     if not args:
         return errmsg
     else:
         return args + ' o/\\o ' + nick
 
-def cmd_heil(nick, args, admin):
+def nyomorult_heil(self, nick, args, admin):
 #    if not args:
 #        return errmsg
 #    else:
@@ -292,14 +330,14 @@ def cmd_heil(nick, args, admin):
 
 
 
-def cmd_tea(nick, args, admin):
+def nyomorult_tea(self, nick, args, admin):
     if not args:
         return errmsg
     else:
         return args + ': ' + nick + ' kiöntötte a lelkét a /t/eádba.'
 
 
-def cmd_summon(nick, args, admin):
+def nyomorult_summon(self, nick, args, admin):
     """Megidézheted akár azt is aki online."""
     if not args:
         return errmsg
@@ -311,11 +349,11 @@ def cmd_summon(nick, args, admin):
         else:
             return args + ' megidézése kudarcba fulladt.'
 
-def cmd_vaccpaor(nick, args, admin):
+def nyomorult_vaccpaor(self, nick, args, admin):
     """angol -> magyar fordítás. Használat: !vaccpaor [kifejezés]"""
     return 'throw new NotImplementedException'
 
-def cmd_garoi(nick, args, admin):
+def nyomorult_garoi(self, nick, args, admin):
     rules = [
         ('ddzs', 'CCS'),
         ('dzs', 'CS'),
