@@ -72,6 +72,7 @@ def cmd_adduser(nick, args, admin):
             try:
                 database.session.commit()
             except sqlalchemy.exc.IntegrityError:
+                database.session.rollback()
                 return 'Már létezik felhasználó ilyen névvel.'
             else:
                 return args.split()[0] + ' hozzáadva!'
@@ -94,6 +95,7 @@ def cmd_addpattern(nick, args, admin):
                 try:
                     database.session.commit()
                 except sqlalchemy.exc.IntegrityError:
+                    database.session.rollback()
                     return 'Ez a pattern már hozzá van rendelve ehhez a felhasználóhoz.'
                 else:
                     return ' '.join(args.split()[1:]) + ' hozzáadva!'
@@ -127,6 +129,7 @@ def cmd_addwelcome(nick, args, admin):
                 try:
                     database.session.commit()
                 except sqlalchemy.exc.IntegrityError:
+                    database.session.rollback()
                     return 'Ez a köszöntés már hozzá van rendelve ehhez a felhasználóhoz.'
                 else:
                     return ' '.join(args.split()[1:]) + ' hozzáadva!'
