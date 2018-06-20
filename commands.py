@@ -6,6 +6,7 @@ import re
 import sqlalchemy.exc
 
 import database
+import sedhistory
 import duckduckgo
 
 errmsg = 'Kit mit hogy?'
@@ -27,6 +28,61 @@ def cmd_choice(nick, args, admin):
         return cmd_help(nick, 'choice', admin)
     else:
         return random.choice(args.split(",")).strip()
+
+def parse_sed_args(args):
+    args = args.split(' ')
+    hist_idx = 0
+
+    if len(args) > 1 and args[0].startswith('-') and len(args[0]) > 1:
+        hist_idx = args[0]
+        hist_idx = abs(int(hist_idx))
+        hist_idx -= 1
+
+        if hist_idx < 0: # 1-based indexing, de ne hasaljunk el ezen
+            hist_idx = 0
+
+        args = args[1:]
+
+    sed = ' '.join(args)
+    return sed, hist_idx
+
+
+def parse_sed(sed):
+    split_ch = sed[1]
+    tmp = sed.split(split_ch)
+    pattern, repl = tmp[1], tmp[2] # skip az 's't
+    return pattern, repl
+
+
+def cmd_sed(nick, args, admin):
+    """sed. Használat: !sed (-idx) s/regex/repl/"""
+    hist = sedhistory.get_personal(nick)
+    sed, hist_idx = parse_sed_args(args)
+
+    if not hist or hist_idx >= len(hist):
+        return # TODO easteregg
+
+    if not sed.startswith('s'):
+        return cmd_help(nick, 'sed', admin)
+
+    pattern, repl = parse_sed(sed)
+    return '%s erre gondolt: %s' % (nick, re.sub(pattern, repl, hist[hist_idx]))
+
+
+def cmd_gsed(nick, args, admin):
+    """Global sed. Használat: !sed (-idx) s/regex/repl/"""
+    hist = sedhistory.get_global()
+    sed, hist_idx = parse_sed_args(args)
+
+    if not hist or hist_idx >= len(hist):
+        return # TODO easteregg
+
+    if not sed.startswith('s'):
+        return cmd_help(nick, 'gsed', admin)
+
+    pattern, repl = parse_sed(sed)
+    hist_nick, message = hist[hist_idx]
+    return '%s szerint %s erre gondolt: %s' % (nick, hist_nick, re.sub(pattern, repl, message))
 
 
 def cmd_kocka(nick, args, admin):
