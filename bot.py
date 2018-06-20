@@ -168,7 +168,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         # noinspection PyBroadException
         try:
             handler = getattr(sys.modules["commands"], "cmd_" + command)
-            response = handler(e.source.nick, args, self.is_operator(e.source.nick))
+            response = handler(self, e.source.nick, args, self.is_operator(e.source.nick))
             self.reply(e, response)
         except:
             self.reply(e, 'There is no problem sir.')
