@@ -25,3 +25,9 @@ CREATE TABLE seen (
 	seen_reasons TEXT,
 	args VARCHAR(64)
 );
+
+CREATE TABLE quotes (
+	id INTEGER PRIMARY KEY,
+	nick VARCHAR(32),
+	message VARCHAR(512)
+);

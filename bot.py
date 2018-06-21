@@ -6,6 +6,7 @@ import time
 import random
 import inspect
 import datetime
+import calendar
 
 import irc.client
 import irc.bot
@@ -93,11 +94,116 @@ class LulzBot(irc.bot.SingleServerIRCBot):
     def on_privmsg(self, c, e):
         self.do_command(e)
 
+    def talkbot_add_msg(self, nick, message):
+        try:
+            database.session.add(database.Quote(nick=nick, message=message))
+            database.session.commit()
+        except sqlalchemy.exc.IntegrityError:
+            database.session.rollback() # mar van ilyen quote ilyen felhasznalotol (?)
+
+    def talkbot_reply(self, nick, e):
+        reply = database.get_random(database.Quote).message
+        self.reply(e, '%s: %s' % (nick, reply))
+
+    def talkbot_handle_who(self, msg):
+        users = self.channels[self.channel].users()
+        return random.choice(list(users))
+
+    def talkbot_handle_when(self, msg):
+        possible = [
+            "%s",
+            "Ekkor: %s",
+            "Épp most",
+            "Holnap",
+            "Kizárt, hogy ekkor: %s",
+            "Nyerő tipp: %s",
+            "Sohanapján",
+            "Tegnap",
+            "Tudod, hogy: %s"
+        ]
+        res = calendar.timegm(time.gmtime()) + random.randrange(1, 1000000) # hi
+        res = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(res))
+        fmt = random.choice(possible)
+        fmt = fmt % res if '%s' in fmt else fmt
+        return fmt
+
+    def talkbot_handle_choice(self, msg):
+        msg = msg[:-1] # strip a '?'t
+        return random.choice([x.strip() for x in msg.split('vagy')])
+
+    def talkbot_handle_question(self, msg):
+        possible = [
+            "De még mennyire!",
+            "Erre a kérdésre csak is az igen jöhet szóba",
+            "Erre a kérdésre csak is az igen jöhet szóba!",
+            "Ez nehéz, ezt nem tudom eldönteni",
+            "Ha döntenem kell, akkor igen",
+            "Ha döntenem kell, akkor nem",
+            "Hát úgy tűnik...",
+            "Igeen <3",
+            "Igen",
+            "Igen igen!",
+            "Jaja",
+            "Kerestem én a lehetőségét, hogy hátha igen, de sajnos azt kell mondjam, hogy nem",
+            "Kerestem én a lehetőségét, hogy hátha nem, de sajnos azt kell mondjam, hogy igen",
+            "Még én se tudom, hm.",
+            "Meglehet, meglehet!",
+            "Minden eshetőséget megvizsgálva azt kell mondjam, hogy igen",
+            "Mondanivalódban nem látok rációt, nem!",
+            "Nem",
+            "Nem hinném...",
+            "Nem nem...",
+            "Nem nem nem, és nem",
+            "Nem úgy van az!",
+            "Nincs rá esély.",
+            "Szerintem igen.",
+            "Szerintem nem.",
+            "Talán",
+            "Valószínűleg igen",
+            "Valószínűleg nem",
+            "Valószínűleg... igen",
+            "Valószínűleg... nem",
+        ]
+        return random.choice(possible)
+
+    def talkbot_handle_msg(self, nick, message, c, e):
+        def is_who(x):
+            return x.lower().startswith('ki') and x.endswith("?")
+
+        def is_when(x):
+            return x.lower().startswith('mikor') and x.endswith("?")
+
+        def is_choice(x):
+            return 'vagy' in x and x.endswith("?")
+
+        def is_question(x):
+            return x.endswith("?")
+
+        special = []
+        special.append((is_who,      self.talkbot_handle_who))
+        special.append((is_when,     self.talkbot_handle_when))
+        special.append((is_choice,   self.talkbot_handle_choice))
+        special.append((is_question, self.talkbot_handle_question))
+
+        my_nick = c.get_nickname()
+
+        if message.startswith("%s:" % my_nick):
+            message = ":".join(message.split(":")[1:]).strip()
+
+            for match, res in special:
+                if match(message):
+                    self.reply(e, '%s: %s' % (nick, res(message)))
+                    return
+
+            self.talkbot_add_msg(nick, message)
+            self.talkbot_reply(nick, e)
+
     def on_pubmsg(self, c, e):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         message = e.arguments[0]
         self.sed_history.update(e.source.nick, message)
+        self.talkbot_handle_msg(e.source.nick, message, c, e)
         if is_command(message) and len(message) > 1 and len(''.join(set(message))) > 1:
             self.do_command(e)
         # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
