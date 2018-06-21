@@ -36,6 +36,39 @@ def is_command(message):
     return message.startswith("?") or message.startswith("!") or message.startswith("s/")
 
 
+def find_matching_paren(s, paren_idx):
+    idx = paren_idx
+    push = 0
+
+    while idx < len(s):
+        if s[idx] == '(':
+            push += 1
+        elif s[idx] == ')':
+            if push == 0: # nem egy sub(ben vagyunk
+                return idx
+            else:
+                push -= 1
+
+        idx += 1
+
+    return -1
+
+
+def find_embed_cmd(s):
+    start = s.find("!(")
+
+    if start == -1:
+        return
+
+    start += 2
+    end = find_matching_paren(s, start)
+
+    if end == -1:
+        return
+
+    return (start, end)
+
+
 class LulzBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
         configFile = "development.conf"
@@ -168,16 +201,32 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             self.say_public(message)
 
     def do_command(self, e):
-        command = e.arguments[0].split()[0].lower()
-        args = ' '.join(e.arguments[0].split()[1:])
-        command, args = prepare_command(command, args, e.arguments[0])
+        msg = e.arguments[0]
+        start_end = find_embed_cmd(msg) # tuple / None
+
         # noinspection PyBroadException
         try:
-            handler = getattr(sys.modules["commands"], "cmd_" + command)
-            response = handler(self, e.source.nick, args, self.is_operator(e.source.nick))
+            while start_end:
+                start, end = start_end
+                subcmd = msg[start:end]
+                response = self.exec_command(e.source.nick, subcmd)
+                msg = msg.replace('!(%s)' % subcmd, response)
+                start_end = find_embed_cmd(msg)
+
+            response = self.exec_command(e.source.nick, msg)
             self.reply(e, response)
-        except:
-            self.reply(e, 'There is no problem sir.')
+        except Exception as err:
+            self.reply(e, 'There is no problem sir. (%s)' % str(err))
+            return ""
+
+    def exec_command(self, nick, msg):
+        command = msg.split()[0].lower()
+        args = ' '.join(msg.split()[1:])
+        command, args = prepare_command(command, args, msg)
+
+        handler = getattr(sys.modules["commands"], "cmd_" + command)
+        response = handler(self, nick, args, self.is_operator(nick))
+        return response
 
     def is_operator(self, nick):
         chanop = self.channels[self.channel].is_oper(nick)
