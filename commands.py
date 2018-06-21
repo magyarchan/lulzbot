@@ -61,23 +61,39 @@ def sed_common(self, nick, args, get_hist, get_help, format_msg):
     split_ch = sed[1]
     tmp = sed.split(split_ch)
     pattern, repl = tmp[1], tmp[2] # skip az 's't
-    return format_msg(nick, pattern, repl, hist)[:512]
+    flags = tmp[3] if len(tmp) >= 4 else ''
+    count = 0
+    iflag = 0
+    if 'i' in flags: # case-insensitive
+        iflag = re.IGNORECASE
+    if 'g' not in flags: # nem global
+        count = 1
+    return format_msg(nick, pattern, repl, hist, iflag, count)[:512]
 
 
 def cmd_sed(self, nick, args, admin):
     """sed. Használat: !sed (-idx) s/regex/repl/"""
+    def format_msg(nick, pattern, repl, hist, iflag, count):
+        return '%s erre gondolt: %s' % (nick,
+                re.sub(pattern, repl, hist, flags = iflag, count = count))
+
     return sed_common(self, nick, args,
         lambda idx: self.sed_history.get_personal(nick, idx),
         lambda: cmd_help(nick, 'sed', admin),
-        lambda nick, pattern, repl, hist: '%s erre gondolt: %s' % (nick, re.sub(pattern, repl, hist)))
+        format_msg)
 
 
 def cmd_gsed(self, nick, args, admin):
     """Global sed. Használat: !sed (-idx) s/regex/repl/"""
+    def format_msg(nick, pattern, repl, hist, iflag, count):
+        return '%s szerint %s erre gondolt: %s' % (nick,
+                hist[0],
+                re.sub(pattern, repl, hist[1], flags = iflag, count = count))
+
     return sed_common(self, nick, args,
         lambda idx: self.sed_history.get_global(idx),
         lambda: cmd_help(nick, 'gsed', admin),
-        lambda nick, pattern, repl, hist: '%s szerint %s erre gondolt: %s' % (nick, hist[0], re.sub(pattern, repl, hist[1])))
+        format_msg)
 
 
 def cmd_help(self, nick, args, admin):
