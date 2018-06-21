@@ -215,8 +215,8 @@ class LulzBot(irc.bot.SingleServerIRCBot):
 
             response = self.exec_command(e.source.nick, msg)
             self.reply(e, response)
-        except Exception as err:
-            self.reply(e, 'There is no problem sir. (%s)' % str(err))
+        except:
+            self.reply(e, 'There is no problem sir.')
             return ""
 
     def exec_command(self, nick, msg):
