@@ -61,7 +61,7 @@ def sed_common(self, nick, args, get_hist, get_help, format_msg):
     split_ch = sed[1]
     tmp = sed.split(split_ch)
     pattern, repl = tmp[1], tmp[2] # skip az 's't
-    return format_msg(nick, pattern, repl, hist)
+    return format_msg(nick, pattern, repl, hist)[:512]
 
 
 def cmd_sed(self, nick, args, admin):
