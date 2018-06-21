@@ -201,25 +201,23 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             self.say_public(message)
 
     def do_command(self, e):
-        msg = e.arguments[0]
-        start_end = find_embed_cmd(msg) # tuple / None
-
         # noinspection PyBroadException
         try:
-            while start_end:
-                start, end = start_end
-                subcmd = msg[start:end]
-                response = self.exec_command(e.source.nick, subcmd)
-                msg = msg.replace('!(%s)' % subcmd, response)
-                start_end = find_embed_cmd(msg)
-
-            response = self.exec_command(e.source.nick, msg)
+            response = self.exec_command(e.source.nick, e.arguments[0])
             self.reply(e, response)
         except:
             self.reply(e, 'There is no problem sir.')
             return ""
 
     def exec_command(self, nick, msg):
+        start_end = find_embed_cmd(msg)
+
+        if start_end is not None:
+            start, end = start_end
+            subcmd = msg[start:end]
+            response = self.exec_command(nick, subcmd)
+            msg = msg.replace('!(%s)' % subcmd, response)
+
         command = msg.split()[0].lower()
         args = ' '.join(msg.split()[1:])
         command, args = prepare_command(command, args, msg)
