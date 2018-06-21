@@ -177,7 +177,6 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             return 'vagy' in x and x.endswith("?")
 
         def is_question(x):
-            print(x.endswith("?"))
             return x.endswith("?")
 
         special = []
