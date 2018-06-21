@@ -1,4 +1,5 @@
 import sqlalchemy
+import sqlalchemy.sql.expression
 import sqlalchemy.schema
 import sqlalchemy.orm
 import sqlalchemy.orm.session
@@ -9,6 +10,10 @@ import database_config
 
 Base = sqlalchemy.ext.declarative.declarative_base()
 session = sqlalchemy.orm.session.Session()
+
+
+def get_random(cls):
+    return session.query(cls).order_by(sqlalchemy.sql.expression.func.random()).limit(1)[0]
 
 
 class User(Base):
@@ -43,6 +48,14 @@ class Seen(Base):
     nick = sqlalchemy.Column(sqlalchemy.String(32), unique=True)
     reason = sqlalchemy.Column(sqlalchemy.Enum('quit', 'part', 'kick', 'nick'), name='seen_reasons')
     args = sqlalchemy.Column(sqlalchemy.String(64))
+
+
+class Quote(Base):
+    __tablename__ = 'quotes'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    nick = sqlalchemy.Column(sqlalchemy.String(32))
+    message = sqlalchemy.Column(sqlalchemy.String(512))
+    __table_args__ = (sqlalchemy.schema.UniqueConstraint('nick', 'message'),)
 
 
 def initialize():

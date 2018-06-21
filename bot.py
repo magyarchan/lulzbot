@@ -93,11 +93,31 @@ class LulzBot(irc.bot.SingleServerIRCBot):
     def on_privmsg(self, c, e):
         self.do_command(e)
 
+    def talkbot_add_msg(self, nick, message):
+        try:
+            database.session.add(database.Quote(nick=nick, message=message))
+            database.session.commit()
+        except sqlalchemy.exc.IntegrityError:
+            database.session.rollback() # mar van ilyen quote ilyen felhasznalotol (?)
+
+    def talkbot_reply(self, nick, e):
+        reply = database.get_random(database.Quote).message
+        self.reply(e, '%s: %s' % (nick, reply))
+
+    def talkbot_handle_msg(self, nick, message, c, e):
+        my_nick = c.get_nickname()
+
+        if message.startswith("%s:" % my_nick):
+            message = ":".join(message.split(":")[1:]).strip()
+            self.talkbot_add_msg(nick, message)
+            self.talkbot_reply(nick, e)
+
     def on_pubmsg(self, c, e):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         message = e.arguments[0]
         self.sed_history.update(e.source.nick, message)
+        self.talkbot_handle_msg(e.source.nick, message, c, e)
         if is_command(message) and len(message) > 1 and len(''.join(set(message))) > 1:
             self.do_command(e)
         # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
