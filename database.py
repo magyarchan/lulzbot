@@ -4,8 +4,6 @@ import sqlalchemy.orm
 import sqlalchemy.orm.session
 import sqlalchemy.ext.declarative
 
-import database_config
-
 
 Base = sqlalchemy.ext.declarative.declarative_base()
 session = sqlalchemy.orm.session.Session()
@@ -45,8 +43,10 @@ class Seen(Base):
     args = sqlalchemy.Column(sqlalchemy.String(64))
 
 
-def initialize():
+
+def initialize(config):
     global session
-    engine = sqlalchemy.create_engine(database_config.connection_string)
+    connection_string = 'sqlite:///%s' % config.getString('db.path')
+    engine = sqlalchemy.create_engine(connection_string)
     _session = sqlalchemy.orm.sessionmaker(bind=engine)
     session = _session()

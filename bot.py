@@ -235,8 +235,8 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         return chanop or dbop
 
 def main():
-    database.initialize()
     bot = LulzBot()
+    database.initialize(bot.config)
     bot.connection.set_keepalive(300)
     connected = False
     while not connected:
