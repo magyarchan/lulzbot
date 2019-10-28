@@ -122,7 +122,7 @@ def cmd_adduser(self, nick, args, admin):
     """Felhasználó hozzáadása. Használat: !adduser user"""
     if admin:
         if args:
-            database.session.add(database.User(name=args.split()[0]))
+            database.session.add(database.User(name=args.split()[0], is_admin=0))
             try:
                 database.session.commit()
             except sqlalchemy.exc.IntegrityError:

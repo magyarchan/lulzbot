@@ -20,6 +20,8 @@ import database
 from config import Config
 
 
+general_error = 'There is no problem sir.'
+
 # strip !, preprocess special commands
 def prepare_command(command, args, full_msg):
     if command[0] == '?':
@@ -106,7 +108,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             if ('http://' in url or 'https://' in url):
                 if('imgur' in url):
                     url = re.sub(r'.gifv?', '', url)
-                print('trying to parse: ' + url)
+                #print('trying to parse: ' + url.decode('utf-8', 'ignore'))
                 title = urlparser.get_title(url)
                 if title:
                     self.say_public(title)
@@ -207,7 +209,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             response = self.exec_command(e.source.nick, e.arguments[0])
             self.reply(e, response)
         except:
-            self.reply(e, 'There is no problem sir.')
+            self.reply(e, general_error )
             return ""
 
     def exec_command(self, nick, msg):
@@ -231,8 +233,10 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         chanop = self.channels[self.channel].is_oper(nick)
         dbop = False
         for user in database.session.query(database.User):
-            if any(re.search(pattern.pattern, nick, flags=re.IGNORECASE) for pattern in user.patterns):
+            if any(str.lower(pattern.pattern) in pattern for pattern in user.patterns):
+                print(user, bool(user.is_admin))
                 dbop = bool(user.is_admin)
+
         return chanop or dbop
 
 def main():

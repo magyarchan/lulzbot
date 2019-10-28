@@ -1,0 +1,4 @@
+irc==16.2
+bs4==0.0.1
+sqlalchemy==1.2.3
+pyhocon==0.3.38
