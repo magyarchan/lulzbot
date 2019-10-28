@@ -4,6 +4,9 @@ class Config:
     def __init__(self, config = "development.conf"):
         self.conf = ConfigFactory.parse_file(config)
 
+    def getInstance(self):
+        return self.conf
+
     def debug(self):
         print(self.conf)
 
