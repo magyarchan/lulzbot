@@ -232,7 +232,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         for user in database.session.query(database.User):
             if any(re.search(pattern.pattern, nick, flags=re.IGNORECASE) for pattern in user.patterns):
                 dbop = bool(user.is_admin)
-        return str(chanop or dbop)
+        return chanop or dbop
 
 def main():
     database.initialize()
