@@ -1,8 +1,9 @@
 from pyhocon import ConfigFactory
 
 class Config:
-    def __init__(self, config = "development.conf"):
-        self.conf = ConfigFactory.parse_file(config)
+    def __init__(self, config = "dev.conf"):
+        configPath = f'conf/{config}'
+        self.conf = ConfigFactory.parse_file(configPath)
 
     def getInstance(self):
         return self.conf

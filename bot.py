@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
 import re
@@ -74,7 +75,7 @@ def find_embed_cmd(s):
 
 class LulzBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
-        configFile = "development.conf"
+        configFile = "dev.conf"
         if(len(sys.argv) > 1):
             configFile = sys.argv[1]
         self.config = Config(configFile)
@@ -232,10 +233,10 @@ class LulzBot(irc.bot.SingleServerIRCBot):
     def is_operator(self, nick):
         chanop = self.channels[self.channel].is_oper(nick)
         dbop = False
-        for user in database.session.query(database.User):
-            if any(str.lower(pattern.pattern) in pattern for pattern in user.patterns):
-                print(user, bool(user.is_admin))
-                dbop = bool(user.is_admin)
+        # for user in database.session.query(database.User):
+        #     if any(str.lower(pattern.pattern) in pattern for pattern in user.patterns):
+        #         print(user, bool(user.is_admin))
+        #         dbop = bool(user.is_admin)
 
         return chanop or dbop
 

@@ -1,13 +1,10 @@
 import time
 
-directory = './log/'
-
-filename = time.strftime("%Y-%m-%d_%H")
-file = open(directory + filename + '.txt', mode='a', encoding='utf-8')
-
-
 def log(e):
-    global filename, file
+    directory = './log/'
+    filename = time.strftime("%Y-%m-%d_%H")
+    file = open(directory + filename + '.txt', mode='a', encoding='utf-8')
+    # global filename, file
 
     log_text = ''
     if e.type == 'pubmsg':
