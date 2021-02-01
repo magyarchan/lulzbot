@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 import collections
 
 def should_ignore(message):

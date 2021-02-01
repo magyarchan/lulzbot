@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 import inspect
 import sys
 import random

@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
 import re
 import sys
 import time
 import random
-import inspect
+# import inspect
 import datetime
 
 import irc.client
