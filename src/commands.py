@@ -168,8 +168,8 @@ def cmd_patterns(self, nick, args, admin):
         for user in database.session.query(database.User):
             if any(re.search(pattern.pattern, nick, flags=re.IGNORECASE)
                     for pattern in user.patterns):
-                patterns = user.patterns
-                print(patterns)
+                patterns = [p.pattern for p in user.patterns]
+                return ','.join(patterns)
     else:
         return autherror
 
