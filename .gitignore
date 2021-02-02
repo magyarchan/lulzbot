@@ -3,6 +3,13 @@ log/
 __pycache__/
 .idea/
 development.conf
+dev.conf
 dev.sqlite
 gh-lb
 test_db.py
+.venv
+.pylintrc
+.vscode
+log/
+Makefile
+
