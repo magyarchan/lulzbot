@@ -23,8 +23,10 @@ def search(query):
         return results['AbstractText'] + ' (' + results['AbstractURL'] + ')'
     elif results['Definition']:
         return results['Definition'] + ' (' + results['DefinitionURL'] + ')'
-    elif len(results['RelatedTopics']):
-        return results['RelatedTopics'][0]['Text'] + ' (' + results['RelatedTopics'][0]['FirstURL'] + ')'
+    elif len(results['RelatedTopics']) > 0:
+        text = results['RelatedTopics'][0]['Text']
+        first = results['RelatedTopics'][0]['FirstURL']
+        return f"{text} ({first})"
     elif results['Redirect']:
         return results['Redirect']
     elif query[0] != '\\':

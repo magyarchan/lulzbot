@@ -75,7 +75,7 @@ def find_embed_cmd(s):
 class LulzBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
         configFile = "dev.conf"
-        if(len(sys.argv) > 1):
+        if len(sys.argv) > 1:
             configFile = sys.argv[1]
         self.config = Config(configFile)
         server = self.config.getString('irc.server')
@@ -87,26 +87,26 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         commands.bot = self
         self.sed_history = sed.SedHistory()
 
-    def on_nicknameinuse(self, c, e):
+    def on_nicknameinuse(self, c, _):
         c.nick(c.get_nickname() + "_")
 
-    def on_welcome(self, c, e):
+    def on_welcome(self, c, _):
         c.join(self.channel)
 
-    def on_privmsg(self, c, e):
+    def on_privmsg(self, _, e):
         self.do_command(e)
 
-    def on_pubmsg(self, c, e):
+    def on_pubmsg(self, _, e):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         message = e.arguments[0]
         self.sed_history.update(e.source.nick, message)
         if is_command(message) and len(message) > 1 and len(''.join(set(message))) > 1:
             self.do_command(e)
-        # TODO: ezt itt lent kiegesziteni egy whitelisttel, amit egy adatbazis tablabol olvasunk befele
+        # TODO: use a whitelist from DB
         for url in message.split():
             if ('http://' in url or 'https://' in url):
-                if('imgur' in url):
+                if 'imgur' in url:
                     url = re.sub(r'.gifv?', '', url)
                 #print('trying to parse: ' + url.decode('utf-8', 'ignore'))
                 title = urlparser.get_title(url)
@@ -119,7 +119,9 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         if e.source.nick != c.get_nickname():
             welcomes = []
             for user in database.session.query(database.User):
-                if any(re.search(pattern.pattern, e.source.nick, flags=re.IGNORECASE) for pattern in user.patterns):
+                if any(re.search(pattern.pattern,
+                                e.source.nick, flags=re.IGNORECASE) for
+                        pattern in user.patterns):
                     welcomes += [welcome.welcome for welcome in user.welcomes]
             if welcomes:
                 self.say_public(random.choice(welcomes))
@@ -136,13 +138,16 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             seen[0].args = e.arguments[0]
         else:
             database.session.add(
-                database.Seen(time=datetime.datetime.now(), nick=e.source.nick, reason='quit', args=e.arguments[0]))
+                database.Seen(time=datetime.datetime.now(),
+                              nick=e.source.nick,
+                              reason='quit', args=e.arguments[0]))
         database.session.commit()
-        if len(e.source.nick) < len(c.get_nickname()) and re.search(r'^' + c.get_nickname().rstrip('_') + r'_*$',
-                                                                    e.source.nick):
+        if (len(e.source.nick) < len(c.get_nickname()) and
+            re.search(r'^' + c.get_nickname().rstrip('_') + r'_*$',
+                      e.source.nick)):
             c.nick(e.source.nick)
 
-    def on_part(self, c, e):
+    def on_part(self, _, e):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         seen = database.session.query(database.Seen).filter_by(nick=e.source.nick).all()
@@ -156,7 +161,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
                               args=e.arguments[0] if e.arguments else ''))
         database.session.commit()
 
-    def on_nick(self, c, e):
+    def on_nick(self, _, e):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
         seen = database.session.query(database.Seen).filter_by(nick=e.source.nick).all()
@@ -166,7 +171,9 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             seen[0].args = e.target
         else:
             database.session.add(
-                database.Seen(time=datetime.datetime.now(), nick=e.source.nick, reason='nick', args=e.target))
+                database.Seen(time=datetime.datetime.now(),
+                              nick=e.source.nick,
+                              reason='nick', args=e.target))
         database.session.commit()
 
     def on_kick(self, c, e):
@@ -185,14 +192,16 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         if e.arguments[0] == c.get_nickname():
             self.connection.join(self.channel)
 
-    def on_mode(self, c, e):
+    def on_mode(self, _, e):
         if self.config.getBoolean('irc.logging'):
             log.log(e)
 
     def say(self, target, message):
         if message:
             for i in range(0, len(message), 350):
-                self.connection.privmsg(target, '\x0305' + message[i:i + 350].replace('\r', '').replace('\n', ' '))
+                self.connection.privmsg(target,
+                                        '\x0305' + message[i:i + 350]
+                                            .replace('\r', '').replace('\n', ' '))
 
     def say_public(self, message):
         self.say(self.channel, message)

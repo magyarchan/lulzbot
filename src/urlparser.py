@@ -25,4 +25,3 @@ def get_title(url):
     except Exception as e:
         print('bazdmeg: ' + str(e))
         return ''
-

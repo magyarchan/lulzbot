@@ -21,4 +21,3 @@ class Config:
 
     def getBoolean(self, key):
         return self.conf.get_bool(key)
-
