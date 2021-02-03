@@ -1,8 +1,8 @@
-lulzbot, a #magyarchan új botja
+lulzbot, a #magyarchan Ãºj botja
 
-## Dependencies
+## Installation
 
-Python3
-
-	pip install irc bs4 sqlalchemy pyhocon
+	python -m venv .venv
+	source ./.venv/bin/activate
+	pip install -r requirements.txt
 
