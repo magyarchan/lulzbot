@@ -176,7 +176,7 @@ def cmd_patterns(self, nick, args, admin):
 
 def cmd_addwelcome(self, nick, args, admin):
     """Hozzáad egy köszöntő üzenetet a megadott felhasználóhoz.
-        Használat: !addwelcome user welcome"""
+       Használat: !addwelcome user welcome"""
     if admin:
         if len(args.split()) >= 2:
             user = database.session.query(database.User).filter_by(name=args.split()[0]).all()
@@ -196,22 +196,19 @@ def cmd_addwelcome(self, nick, args, admin):
         return autherror
 
 
-
-
 def cmd_rmuser(self, nick, args, admin):
     """Felhasználó törlése. Használat: !rmuser user"""
     if admin:
         if args:
-            user = database.session.query(database.User).filter_by(name=args.split()[0]).all()
+            uname = args.split()[0]
+            user = database.session.query(database.User).filter_by(name=uname).all()
             if len(user) > 0:
                 database.session.delete(user[0])
                 database.session.commit()
                 return args.split()[0] + ' törölve!'
             return 'Nincs ilyen nevű felhasználó!'
-        else:
-            return self.cmd_help(nick, 'rmuser', admin)
-    else:
-        return autherror
+        return self.cmd_help(nick, 'rmuser', admin)
+    return autherror
 
 
 def cmd_rmpattern(self, nick, args, admin):
@@ -226,10 +223,8 @@ def cmd_rmpattern(self, nick, args, admin):
                 database.session.commit()
                 return ' '.join(args.split()[1:]) + ' törölve!'
             return 'Nincs ilyen nevű felhasználó/pattern páros!'
-        else:
-            return self.cmd_help(nick, 'rmpattern', admin)
-    else:
-        return autherror
+        return self.cmd_help(nick, 'rmpattern', admin)
+    return autherror
 
 
 def cmd_rmwelcome(self, nick, args, admin):
@@ -244,10 +239,8 @@ def cmd_rmwelcome(self, nick, args, admin):
                 database.session.commit()
                 return ' '.join(args.split()[1:]) + ' törölve!'
             return 'Nincs ilyen nevű felhasználó/üdvözlet páros!'
-        else:
-            return self.cmd_help(nick, 'rmwelcome', admin)
-    else:
-        return autherror
+        return self.cmd_help(nick, 'rmwelcome', admin)
+    return autherror
 
 
 def cmd_admin(self, nick, args, admin):
@@ -261,29 +254,14 @@ def cmd_seen(self, nick, args, admin):
                        database.session.query(database.Seen).all()))
     if user_seen:
         seen = user_seen[0]
-        if seen.reason == 'quit':
-            return (seen.nick +
-                    ' legutóbb ekkor volt online: ' +
-                    str(seen.time) +
-                    ' (kilépett: ' +
-                    seen.args + ')')
-        if seen.reason == 'part':
-            return (seen.nick +
-                    ' legutóbb ekkor volt online: ' +
-                    str(seen.time) +
-                    ' (elhagyta a csatornát' +
-                    (': ' + seen.args + ')' if seen.args else ')'))
-        if seen.reason == 'nick':
-            return (seen.nick +
-                    ' legutóbb ekkor volt online: ' +
-                    str(seen.time) +
-                    ' (nicket váltott: ' +
-                    seen.args + ')')
-        return (seen.nick +
-                ' legutóbb ekkor volt online: ' +
-                str(seen.time) +
-                paren(seen.args.split()[0] + ' kirúgta: ' +
-                        ' '.join(seen.args.split()[1:])))
+        seen_at = str(seen.time)[:19]
+        msg = {
+            'quit': f"kilépett: {seen.args}",
+            'part': "elhagyta a csatornát" + f": {seen.args}" if seen.args else '',
+            'nick': f"nicket váltott: {seen.args}",
+            'kick': (lambda s: f"{s.split()[0]} kirúgta: {' '.join(s.split()[1:])}")(seen.args),
+        }[seen.reason]
+        return f"{seen.nick} legutóbb ekkor volt online: {seen_at} {paren(msg)}"
     return f"{args} nem járt erre."
 
 
