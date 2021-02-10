@@ -82,6 +82,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
         port = self.config.getInt('irc.port')
         name = self.config.getString('irc.name')
         channel = self.config.getString('irc.channel')
+        # TODO: check if db exists
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], name, name)
         self.channel = channel
         commands.bot = self
@@ -101,17 +102,23 @@ class LulzBot(irc.bot.SingleServerIRCBot):
             log.log(e)
         message = e.arguments[0]
         self.sed_history.update(e.source.nick, message)
-        if is_command(message) and len(message) > 1 and len(''.join(set(message))) > 1:
+        if (is_command(message) and
+                len(message) > 1 and
+                len(''.join(set(message))) > 1):
             self.do_command(e)
-        # TODO: use a whitelist from DB
         for url in message.split():
-            if ('http://' in url or 'https://' in url):
-                if 'imgur' in url:
-                    url = re.sub(r'.gifv?', '', url)
-                #print('trying to parse: ' + url.decode('utf-8', 'ignore'))
-                title = urlparser.get_title(url)
-                if title:
-                    self.say_public(title)
+            self.resolve_url(url)
+
+    # TODO: use a whitelist from DB
+    def resolve_url(self, url):
+        if ('http://' in url or 'https://' in url):
+            if 'imgur' in url:
+                url = re.sub(r'.gifv?', '', url)
+            #print('trying to parse: ' + url.decode('utf-8', 'ignore'))
+            title = urlparser.get_title(url)
+            if title:
+                self.say_public(title)
+
 
     def on_join(self, c, e):
         if self.config.getBoolean('irc.logging'):
@@ -205,6 +212,7 @@ class LulzBot(irc.bot.SingleServerIRCBot):
 
     def say_public(self, message):
         self.say(self.channel, message)
+        self.resolve_url(message)
 
     def reply(self, e, message):
         if e.type == 'privmsg':
